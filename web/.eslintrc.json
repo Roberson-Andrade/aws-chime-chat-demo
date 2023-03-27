@@ -1,0 +1,63 @@
+{
+    "env": {
+        "browser": true,
+        "es2021": true
+    },
+    "extends": [
+        "eslint:recommended",
+        "plugin:react/recommended",
+        "plugin:@typescript-eslint/recommended",
+        "airbnb-base",
+        "plugin:unicorn/recommended",
+        "plugin:prettier/recommended",
+        "prettier"
+    ],
+    "overrides": [],
+    "ignorePatterns": [
+        "**/*.js",
+        "**/node_modules/**"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "ecmaFeatures": {
+            "jsx": true
+        },
+        "ecmaVersion": "latest",
+        "sourceType": "module"
+    },
+    "plugins": [
+        "react",
+        "@typescript-eslint",
+        "unicorn",
+        "prettier"
+    ],
+    "rules": {
+        "import/prefer-default-export": "off",
+        "import/extensions": "off",
+        "import/no-unresolved": "off",
+        "prettier/prettier": "error",
+        "unicorn/filename-case": "off",
+        "no-restricted-syntax": "off",
+        "@typescript-eslint/no-unused-vars": [
+            "error"
+        ],
+        "react/jsx-indent": [
+            "error",
+            2
+        ],
+        "linebreak-style": [
+            "error",
+            "unix"
+        ],
+        "quotes": [
+            "error",
+            "single"
+        ],
+        "semi": [
+            "error",
+            "always"
+        ],
+        "react/react-in-jsx-scope": "off",
+        "import/no-extraneous-dependencies": "off"
+    }
+}
