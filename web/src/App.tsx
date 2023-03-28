@@ -1,7 +1,7 @@
-import { Login } from './pages/login';
+import { Chat } from './pages/chat';
 
 function App() {
-  return <Login />;
+  return <Chat />;
 }
 
 export default App;

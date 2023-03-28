@@ -1,4 +1,3 @@
-/* eslint-disable react/no-children-prop */
 import {
   Button,
   Divider,
@@ -6,28 +5,48 @@ import {
   FormControl,
   FormLabel,
   Heading,
+  Image,
   Input,
   InputGroup,
   InputRightElement,
   Text,
 } from '@chakra-ui/react';
 import { useState } from 'react';
+import chimeLogoUrl from '../../assets/chime-logo.png';
 
 export function Login() {
-  const [show, setShow] = useState(false);
-  const handleClick = () => setShow(!show);
+  const [mode, setMode] = useState<'signIn' | 'signUp'>('signIn');
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleClick = () => setShowPassword(!showPassword);
+  function onToggleMode() {
+    setMode((previousState) =>
+      previousState === 'signIn' ? 'signUp' : 'signIn'
+    );
+  }
+
+  const isSignInMode = mode === 'signIn';
 
   return (
-    <Flex h="100vh" w="100vw">
-      <Flex flexGrow={1} align="center" justify="center">
-        <Flex w="full" maxW="25rem" direction="column" gap="6" px="4">
-          <Flex gap="2" direction="column">
-            <Heading as="h1" size="md">
-              Sign in
-            </Heading>
-          </Flex>
+    <Flex h="100vh" w="100vw" align="center" justify="center">
+      <Flex w="full" maxW="25rem" direction="column" gap="6" px="4">
+        <Flex align="center" direction="column" gap="4" mb="8">
+          <Image
+            boxSize="100px"
+            objectFit="cover"
+            src={chimeLogoUrl}
+            alt="Dan Abramov"
+          />
+          <Heading>AWS Chime Demo</Heading>
+        </Flex>
+        <Flex gap="2" direction="column">
+          <Heading as="h1" size="md">
+            {isSignInMode ? 'Sign in' : 'Sign out'}
+          </Heading>
+        </Flex>
 
-          <Flex as="form" direction="column" gap="4">
+        <Flex as="form" direction="column" gap="4">
+          {!isSignInMode && (
             <FormControl>
               <FormLabel fontWeight="semibold">Email</FormLabel>
 
@@ -37,39 +56,50 @@ export function Login() {
                 placeholder="user@email.com"
               />
             </FormControl>
+          )}
+          <FormControl>
+            <FormLabel fontWeight="semibold">Email</FormLabel>
 
-            <FormControl>
-              <FormLabel fontWeight="semibold">Password</FormLabel>
-              <InputGroup size="md">
-                <Input
-                  pr="4.5rem"
-                  type={show ? 'text' : 'password'}
-                  focusBorderColor="teal.400"
-                  placeholder="*********"
-                />
-                <InputRightElement width="4.5rem">
-                  <Button h="1.75rem" size="sm" onClick={handleClick}>
-                    {show ? 'Hide' : 'Show'}
-                  </Button>
-                </InputRightElement>
-              </InputGroup>
-            </FormControl>
+            <Input
+              type="email"
+              focusBorderColor="teal.400"
+              placeholder="user@email.com"
+            />
+          </FormControl>
 
-            <Button colorScheme="teal">Login</Button>
-          </Flex>
+          <FormControl>
+            <FormLabel fontWeight="semibold">Password</FormLabel>
+            <InputGroup size="md">
+              <Input
+                pr="4.5rem"
+                type={showPassword ? 'text' : 'password'}
+                focusBorderColor="teal.400"
+                placeholder="*********"
+              />
+              <InputRightElement width="4.5rem">
+                <Button h="1.75rem" size="sm" onClick={handleClick}>
+                  {showPassword ? 'Hide' : 'Show'}
+                </Button>
+              </InputRightElement>
+            </InputGroup>
+          </FormControl>
 
-          <Flex alignItems="center" gap="2">
-            <Divider opacity="1" />{' '}
-            <Text color="gray.400" fontSize="sm">
-              or
-            </Text>{' '}
-            <Divider opacity="1" />
-          </Flex>
-
-          <Button colorScheme="teal" variant="outline">
-            Create an account
+          <Button colorScheme="teal">
+            {isSignInMode ? 'Login' : 'Create an account'}
           </Button>
         </Flex>
+
+        <Flex alignItems="center" gap="2">
+          <Divider opacity="1" />{' '}
+          <Text color="gray.400" fontSize="sm">
+            or
+          </Text>{' '}
+          <Divider opacity="1" />
+        </Flex>
+
+        <Button colorScheme="teal" variant="outline" onClick={onToggleMode}>
+          {isSignInMode ? 'Create an account' : 'Login'}
+        </Button>
       </Flex>
     </Flex>
   );

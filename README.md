@@ -19,18 +19,22 @@
 ### Features
 
 #### Frontend:
+
 - [ ] Login
-  - [ ] Create user form
-  - [ ] Login form
+
+  - [x] Create user form
+  - [x] Login form
   - [ ] Integration with AWS Cognito through Amplify
-  
+
 - [ ] Chat
+  - [x] Visual and structure
   - [ ] Integration with AWS Chime Messaging
   - [ ] Fetch chat users
   - [ ] Fetch created conversations
   - [ ] Send and receive messages
   - [ ] Create new conversation
-  
+
 #### Terraform:
+
 - [ ] Cognito
 - [ ] Chime Messaging
