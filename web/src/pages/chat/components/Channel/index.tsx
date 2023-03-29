@@ -2,38 +2,48 @@ import { Flex, IconButton, Input } from '@chakra-ui/react';
 import { PaperPlaneRight } from 'phosphor-react';
 import { useCallback, useState } from 'react';
 import { Virtuoso } from 'react-virtuoso';
+import { generateMessages } from '../../../../api/mockedChime';
 import { useChatContext } from '../../context/useChatContext';
 import { Bubble } from '../Bubble';
 
+const UNDEFINED = undefined;
+
 export function Channel() {
-  const messages = useChatContext((state) => state?.messages);
-  const [firstItemIndex] = useState(100_000);
+  const { messages, token, setMessages, setToken } = useChatContext(
+    (state) => state
+  );
+  const [firstItemIndex, setFirstItemIndex] = useState(100_000);
+  const [initial] = useState(() => messages.length);
 
   const prependItems = useCallback(() => {
-    console.log(messages);
+    if (token) {
+      const messagesToPrepend = 10;
+      const nextFirstItemIndex = firstItemIndex - messagesToPrepend;
+      setToken(UNDEFINED);
 
-    return false;
+      setTimeout(() => {
+        setFirstItemIndex(() => nextFirstItemIndex);
+        setMessages(() => [
+          ...generateMessages(messagesToPrepend),
+          ...messages,
+        ]);
+      }, 500);
+    }
   }, [firstItemIndex]);
   return (
     <Flex bg="gray.100" w="full" direction="column">
       <Virtuoso
         style={{ height: '100%' }}
-        totalCount={messages.length}
         firstItemIndex={firstItemIndex}
-        initialTopMostItemIndex={messages.length - 1}
+        totalCount={messages.length}
+        initialTopMostItemIndex={initial - 1}
         data={messages}
         startReached={prependItems}
-        itemContent={(index, message) => {
-          const isSent = true;
-          return (
-            <div style={{ padding: '0.5rem 2rem' }}>
-              <Bubble
-                content={message.Content as string}
-                variant={isSent ? 'sent' : 'received'}
-              />
-            </div>
-          );
-        }}
+        itemContent={(_, message) => (
+          <div style={{ padding: '0.5rem 2rem' }}>
+            <Bubble message={message} />
+          </div>
+        )}
       />
       <Flex p="4" w="full" mt="auto" bg="white" gap="4">
         <Input focusBorderColor="teal.500" />

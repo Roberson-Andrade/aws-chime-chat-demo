@@ -1,55 +1,49 @@
+import { ChannelMessage } from '@aws-sdk/client-chime-sdk-messaging';
 import { Box, Text } from '@chakra-ui/react';
+import { useChatContext } from '../../context/useChatContext';
 
 interface BubbleProperties {
-  content: string;
-  variant: 'sent' | 'received';
+  message: ChannelMessage;
 }
 
-// const defaultArrowStyle = {
-//   content: '""',
-//   width: 0,
-//   height: 0,
-//   top: '0',
-//   position: 'absolute',
-// };
+export function Bubble({ message }: BubbleProperties) {
+  const loggedUserArn = useChatContext((state) => state?.loggedUserArn);
 
-// const arrowStyle: Record<BubbleProperties['variant'], SystemStyleObject> = {
-//   sent: {
-//     right: '-16px',
-//     borderRight: '16px solid transparent',
-//     borderBottom: '16px solid transparent',
-//     borderTop: '16px solid #FFF',
-//   },
-//   received: {
-//     right: '-16px',
-//     borderRight: '16px solid transparent',
-//     borderBottom: '16px solid transparent',
-//     borderTop: '16px solid #FFF',
-//   },
-// };
+  const variant = message.Sender?.Arn === loggedUserArn ? 'sent' : 'received';
+  const isMessageSent = variant === 'sent';
 
-export function Bubble({ content, variant }: BubbleProperties) {
+  const borderRadiusStyle = isMessageSent
+    ? { borderBottomRightRadius: 0 }
+    : { borderBottomLeftRadius: 0 };
+
+  const timestampPlacement = isMessageSent ? { left: 8 } : { right: 8 };
+
   return (
     <Box
       w="fit-content"
       p="4"
-      bg={variant === 'sent' ? 'teal.100' : 'white'}
+      bg={isMessageSent ? 'teal.100' : 'white'}
       position="relative"
       borderRadius="8px"
-      borderBottomRightRadius="0"
-      ml={variant === 'sent' ? 'auto' : '0'}
-      mr={variant === 'received' ? 'auto' : '0'}
+      ml={isMessageSent ? 'auto' : '0'}
+      mr={isMessageSent ? '0' : 'auto'}
       maxW="300px"
+      style={borderRadiusStyle}
     >
-      {content}
+      {message.Content}
       <Text
         pos="absolute"
         bottom="0.5"
-        left="2"
         fontSize="10px"
         color="gray.400"
+        style={timestampPlacement}
       >
-        11h40
+        {message.CreatedTimestamp
+          ? new Intl.DateTimeFormat('pt-BR', {
+              hour: '2-digit',
+              minute: '2-digit',
+            }).format(message.CreatedTimestamp)
+          : ''}
       </Text>
     </Box>
   );
