@@ -22,6 +22,7 @@ export function ChannelList() {
       flexDirection="column"
       py="2rem"
       gap="1rem"
+      bg="white"
     >
       <Box px="1.5rem">
         <InputGroup>

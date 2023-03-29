@@ -22,6 +22,7 @@ specifiers:
   prettier: ^2.8.7
   react: ^18.2.0
   react-dom: ^18.2.0
+  react-virtuoso: ^4.1.0
   scheduler: ^0.23.0
   typescript: ^4.9.3
   use-context-selector: ^1.4.1
@@ -42,6 +43,7 @@ dependencies:
   prettier: 2.8.7
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
+  react-virtuoso: 4.1.0_biqbaboplfbrettd7655fr4n2y
   scheduler: 0.23.0
   use-context-selector: 1.4.1_2szjah6qrhd6fr2kgr64p4pjgm
 
@@ -4268,6 +4270,17 @@ packages:
       invariant: 2.2.4
       react: 18.2.0
       tslib: 2.5.0
+    dev: false
+
+  /react-virtuoso/4.1.0_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-Vcq5WXn18PvPT55kdeGQ8BN3K95XyPe7hum8zG6Tx7g1CtUYVsQKN7fouMxBSy+XymEDB5ynGy8JWhuqyLLtPw==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      react: '>=16 || >=17 || >= 18'
+      react-dom: '>=16 || >=17 || >= 18'
+    dependencies:
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
     dev: false
 
   /react/18.2.0:
