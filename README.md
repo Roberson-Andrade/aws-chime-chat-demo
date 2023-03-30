@@ -7,7 +7,7 @@
     <img src="https://img.shields.io/badge/progress-0%25-brightgreen.svg" alt="Progress">
   </a>
 	
-  <a href="https://github.com/Chriszao/Clynic/commits/master">
+  <a href="https://github.com/Roberson-andrade/aws-chime-chat-demo/commits/master">
     <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/Roberson-andrade/aws-chime-chat-demo">
   </a>
 
