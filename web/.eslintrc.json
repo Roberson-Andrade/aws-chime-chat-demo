@@ -10,6 +10,7 @@
         "airbnb-base",
         "plugin:unicorn/recommended",
         "plugin:prettier/recommended",
+        "plugin:react-hooks/recommended",
         "prettier"
     ],
     "overrides": [],
@@ -40,10 +41,6 @@
         "no-restricted-syntax": "off",
         "@typescript-eslint/no-unused-vars": [
             "error"
-        ],
-        "react/jsx-indent": [
-            "error",
-            2
         ],
         "linebreak-style": [
             "error",

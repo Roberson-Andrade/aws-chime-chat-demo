@@ -1,6 +1,6 @@
 import { Flex } from '@chakra-ui/react';
 import { Channel } from './components/Channel';
-import { ChannelList } from './components/ChannelList';
+import { List } from './components/List';
 import { ChatProvider } from './context/Provider';
 
 function ChatComponent() {
@@ -22,7 +22,7 @@ function ChatComponent() {
         borderRadius="8px"
         overflow="hidden"
       >
-        <ChannelList />
+        <List />
         <Channel />
       </Flex>
     </Flex>
