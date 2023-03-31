@@ -12,20 +12,52 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import chimeLogoUrl from '../../assets/chime-logo.png';
+import { useAuth } from '../../contexts/Auth/useAuthContext';
+import { Mode } from '../../types';
+import {
+  renderHeader,
+  renderSubmitButtonText,
+  renderBackButtonText,
+} from './utils';
+
+interface LoginFormFields {
+  code: string;
+  name: string;
+  email: string;
+  password: string;
+}
 
 export function Login() {
-  const [mode, setMode] = useState<'signIn' | 'signUp'>('signIn');
+  const [mode, setMode] = useState<Mode>('signIn');
   const [showPassword, setShowPassword] = useState(false);
+  const { register, handleSubmit } = useForm<LoginFormFields>();
+  const { signIn, signUp, confirmAccount } = useAuth((state) => state);
 
   const handleClick = () => setShowPassword(!showPassword);
+
   function onToggleMode() {
     setMode((previousState) =>
       previousState === 'signIn' ? 'signUp' : 'signIn'
     );
   }
 
-  const isSignInMode = mode === 'signIn';
+  async function onSubmit({ email, password, name, code }: LoginFormFields) {
+    if (mode === 'confirmAccount') {
+      await confirmAccount({ code });
+
+      return;
+    }
+
+    if (mode === 'signIn') {
+      await signIn({ email, password });
+      return;
+    }
+
+    await signUp({ email, name, password });
+    setMode('confirmAccount');
+  }
 
   return (
     <Flex h="100vh" w="100vw" align="center" justify="center">
@@ -35,57 +67,79 @@ export function Login() {
             boxSize="100px"
             objectFit="cover"
             src={chimeLogoUrl}
-            alt="Dan Abramov"
+            alt="Chime logo"
           />
           <Heading>AWS Chime Demo</Heading>
         </Flex>
         <Flex gap="2" direction="column">
           <Heading as="h1" size="md">
-            {isSignInMode ? 'Sign in' : 'Sign out'}
+            {renderHeader(mode)}
           </Heading>
         </Flex>
 
-        <Flex as="form" direction="column" gap="4">
-          {!isSignInMode && (
-            <FormControl>
-              <FormLabel fontWeight="semibold">Email</FormLabel>
-
+        <Flex
+          as="form"
+          onSubmit={handleSubmit(onSubmit)}
+          direction="column"
+          gap="4"
+        >
+          {mode === 'confirmAccount' ? (
+            <>
               <Input
-                type="email"
+                type="text"
                 focusBorderColor="teal.400"
-                placeholder="user@email.com"
+                placeholder="********"
+                {...register('code', { required: true })}
               />
-            </FormControl>
+            </>
+          ) : (
+            <>
+              {mode === 'signUp' && (
+                <FormControl>
+                  <FormLabel fontWeight="semibold">Name</FormLabel>
+
+                  <Input
+                    type="text"
+                    focusBorderColor="teal.400"
+                    placeholder="John Doe"
+                    {...register('name', { required: true })}
+                  />
+                </FormControl>
+              )}
+
+              <FormControl>
+                <FormLabel fontWeight="semibold">Email</FormLabel>
+
+                <Input
+                  type="email"
+                  focusBorderColor="teal.400"
+                  placeholder="user@email.com"
+                  {...register('email', { required: true })}
+                />
+              </FormControl>
+
+              <FormControl>
+                <FormLabel fontWeight="semibold">Password</FormLabel>
+                <InputGroup size="md">
+                  <Input
+                    pr="4.5rem"
+                    type={showPassword ? 'text' : 'password'}
+                    focusBorderColor="teal.400"
+                    placeholder="*********"
+                    {...register('password', { required: true })}
+                  />
+                  <InputRightElement width="4.5rem">
+                    <Button h="1.75rem" size="sm" onClick={handleClick}>
+                      {showPassword ? 'Hide' : 'Show'}
+                    </Button>
+                  </InputRightElement>
+                </InputGroup>
+              </FormControl>
+            </>
           )}
-          <FormControl>
-            <FormLabel fontWeight="semibold">Email</FormLabel>
 
-            <Input
-              type="email"
-              focusBorderColor="teal.400"
-              placeholder="user@email.com"
-            />
-          </FormControl>
-
-          <FormControl>
-            <FormLabel fontWeight="semibold">Password</FormLabel>
-            <InputGroup size="md">
-              <Input
-                pr="4.5rem"
-                type={showPassword ? 'text' : 'password'}
-                focusBorderColor="teal.400"
-                placeholder="*********"
-              />
-              <InputRightElement width="4.5rem">
-                <Button h="1.75rem" size="sm" onClick={handleClick}>
-                  {showPassword ? 'Hide' : 'Show'}
-                </Button>
-              </InputRightElement>
-            </InputGroup>
-          </FormControl>
-
-          <Button colorScheme="teal">
-            {isSignInMode ? 'Login' : 'Create an account'}
+          <Button colorScheme="teal" type="submit">
+            {renderSubmitButtonText(mode)}
           </Button>
         </Flex>
 
@@ -98,7 +152,7 @@ export function Login() {
         </Flex>
 
         <Button colorScheme="teal" variant="outline" onClick={onToggleMode}>
-          {isSignInMode ? 'Create an account' : 'Login'}
+          {renderBackButtonText(mode)}
         </Button>
       </Flex>
     </Flex>

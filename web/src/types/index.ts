@@ -11,5 +11,8 @@ export interface Channel {
 
 export interface User {
   id: string;
+  email: string;
   name: string;
 }
+
+export type Mode = 'signUp' | 'signIn' | 'confirmAccount';
