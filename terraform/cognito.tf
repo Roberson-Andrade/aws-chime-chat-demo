@@ -26,63 +26,30 @@ resource "aws_cognito_user_pool" "main" {
   }
 }
 
+resource "aws_cognito_user_pool_client" "main" {
+  name = "aws-chime-chat-client"
+
+  user_pool_id                  = aws_cognito_user_pool.main.id
+  generate_secret               = false
+  refresh_token_validity        = 90
+  prevent_user_existence_errors = "ENABLED"
+  explicit_auth_flows = [
+    "ALLOW_REFRESH_TOKEN_AUTH",
+    "ALLOW_USER_PASSWORD_AUTH",
+    "ALLOW_ADMIN_USER_PASSWORD_AUTH",
+    "ALLOW_USER_SRP_AUTH"
+  ]
+}
+
 resource "aws_cognito_identity_pool" "main" {
   identity_pool_name               = "identity pool"
   allow_unauthenticated_identities = false
 
   cognito_identity_providers {
-    client_id               = aws_cognito_user_pool.main.id
+    client_id               = aws_cognito_user_pool_client.main.id
     provider_name           = "cognito-idp.${var.region}.amazonaws.com/${aws_cognito_user_pool.main.id}"
     server_side_token_check = false
   }
-}
-
-data "aws_iam_policy_document" "authenticated" {
-  statement {
-    effect = "Allow"
-
-    principals {
-      type        = "Federated"
-      identifiers = ["cognito-identity.amazonaws.com"]
-    }
-
-    actions = ["sts:AssumeRoleWithWebIdentity"]
-
-    condition {
-      test     = "StringEquals"
-      variable = "cognito-identity.amazonaws.com:aud"
-      values   = [aws_cognito_identity_pool.main.id]
-    }
-
-    condition {
-      test     = "ForAnyValue:StringLike"
-      variable = "cognito-identity.amazonaws.com:amr"
-      values   = ["authenticated"]
-    }
-  }
-}
-
-resource "aws_iam_role" "authenticated" {
-  name               = "cognito_authenticated"
-  assume_role_policy = data.aws_iam_policy_document.authenticated.json
-}
-
-data "aws_iam_policy_document" "authenticated_role_policy" {
-  effect = "Allow"
-
-  actions = [
-    "mobileanalytics:PutEvents",
-    "cognito-sync:*",
-    "cognito-identity:*",
-  ]
-
-  resources = ["*"]
-}
-
-resource "aws_iam_role_policy" "authenticated" {
-  name   = "authenticated_policy"
-  role   = aws_iam_role.authenticated.id
-  policy = data.aws_iam_policy_document.authenticated_role_policy.json
 }
 
 resource "aws_cognito_identity_pool_roles_attachment" "main" {
