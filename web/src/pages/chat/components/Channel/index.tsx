@@ -38,6 +38,11 @@ export function Channel() {
 
   function onSendMessage(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (!text) {
+      return;
+    }
+
     setMessages((previousMessages) => [
       ...previousMessages,
       {
