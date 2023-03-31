@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+.terraform
+.terraform.*
+*.tfstate
+*.tfstate.*
+
+awsconfig.json
