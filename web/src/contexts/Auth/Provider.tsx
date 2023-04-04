@@ -1,5 +1,6 @@
 import { Auth } from 'aws-amplify';
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
+import { UNDEFINED } from '../../constants';
 import { User } from '../../types';
 import { AuthContext, AuthContextProperties } from './Context';
 
@@ -31,7 +32,6 @@ export function AuthProvider({ children }: AuthProviderProperties) {
         name: attributes.name,
       });
     } catch {
-      const UNDEFINED = undefined;
       setUser(UNDEFINED);
     } finally {
       setIsAuthenticating(false);
@@ -100,8 +100,13 @@ export function AuthProvider({ children }: AuthProviderProperties) {
     [unverifiedAccount?.email, unverifiedAccount?.password]
   );
 
-  // eslint-disable-next-line unicorn/consistent-function-scoping
-  const signOut = async () => Auth.signOut();
+  const signOut = async () => {
+    setIsAuthenticating(true);
+    await Auth.signOut();
+
+    setUser(UNDEFINED);
+    setIsAuthenticating(false);
+  };
 
   const value = useMemo<AuthContextProperties>(
     () => ({
