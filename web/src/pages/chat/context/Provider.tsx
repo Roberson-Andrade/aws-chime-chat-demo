@@ -1,8 +1,14 @@
-import { ChannelMessage } from '@aws-sdk/client-chime-sdk-messaging';
+import {
+  ChannelMessage,
+  ChimeSDKMessagingClient,
+} from '@aws-sdk/client-chime-sdk-messaging';
 import { faker } from '@faker-js/faker';
-import { ReactNode, useMemo, useState } from 'react';
+import { DefaultMessagingSession } from 'amazon-chime-sdk-js';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { generateMessages } from '../../../api/mockedChime';
+import { useAuth } from '../../../contexts/Auth/useAuthContext';
 import { Channel, User } from '../../../types';
+import { messageService } from '../messageService';
 import { ChatContext, ChatContextProperties } from './Context';
 
 interface ChatProviderProperties {
@@ -37,6 +43,9 @@ const MOCKED_USERS: User[] = [
 ];
 
 export function ChatProvider({ children }: ChatProviderProperties) {
+  const [client, setClient] = useState<ChimeSDKMessagingClient>();
+  const [session, setSession] = useState<DefaultMessagingSession>();
+
   const [messages, setMessages] = useState<ChannelMessage[]>(() =>
     generateMessages(10)
   );
@@ -46,6 +55,18 @@ export function ChatProvider({ children }: ChatProviderProperties) {
   const [loggedUserArn, setLoggedUserArn] = useState('arn1');
   generateMessages(10);
   const [token, setToken] = useState<string | undefined>('aa');
+
+  const user = useAuth((state) => state?.user);
+
+  useEffect(() => {
+    if (user)
+      (async () => {
+        const messageServiceResponse = await messageService(user);
+
+        setClient(messageServiceResponse.client);
+        setSession(messageServiceResponse.session);
+      })();
+  }, [user]);
 
   const value = useMemo<ChatContextProperties>(
     () => ({

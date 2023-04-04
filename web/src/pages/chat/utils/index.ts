@@ -1,3 +1,5 @@
+import awsconfig from '../../../awsconfig.json';
+
 export function filterList<T extends { name: string }>(
   list: T[],
   filter: string
@@ -14,4 +16,8 @@ export function filterList<T extends { name: string }>(
           .replace(/[\u0300-\u036F]/g, '')
       )
   );
+}
+
+export function generateUserArn(id: string) {
+  return `${awsconfig.app_instance_arn.value}/user/${id}`;
 }
