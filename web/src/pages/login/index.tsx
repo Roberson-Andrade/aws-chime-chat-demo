@@ -32,6 +32,7 @@ interface LoginFormFields {
 export function Login() {
   const [mode, setMode] = useState<Mode>('signIn');
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { register, handleSubmit } = useForm<LoginFormFields>();
   const { signIn, signUp, confirmAccount } = useAuth((state) => state);
 
@@ -44,19 +45,26 @@ export function Login() {
   }
 
   async function onSubmit({ email, password, name, code }: LoginFormFields) {
+    setIsLoading(true);
+
     if (mode === 'confirmAccount') {
       await confirmAccount({ code });
+
+      setIsLoading(false);
 
       return;
     }
 
     if (mode === 'signIn') {
       await signIn({ email, password });
+      setIsLoading(false);
+
       return;
     }
 
     await signUp({ email, name, password });
     setMode('confirmAccount');
+    setIsLoading(false);
   }
 
   return (
@@ -90,6 +98,7 @@ export function Login() {
                 focusBorderColor="teal.400"
                 placeholder="********"
                 {...register('code', { required: true })}
+                disabled={isLoading}
               />
             </>
           ) : (
@@ -103,6 +112,7 @@ export function Login() {
                     focusBorderColor="teal.400"
                     placeholder="John Doe"
                     {...register('name', { required: true })}
+                    disabled={isLoading}
                   />
                 </FormControl>
               )}
@@ -115,6 +125,7 @@ export function Login() {
                   focusBorderColor="teal.400"
                   placeholder="user@email.com"
                   {...register('email', { required: true })}
+                  disabled={isLoading}
                 />
               </FormControl>
 
@@ -127,9 +138,15 @@ export function Login() {
                     focusBorderColor="teal.400"
                     placeholder="*********"
                     {...register('password', { required: true })}
+                    disabled={isLoading}
                   />
                   <InputRightElement width="4.5rem">
-                    <Button h="1.75rem" size="sm" onClick={handleClick}>
+                    <Button
+                      h="1.75rem"
+                      size="sm"
+                      onClick={handleClick}
+                      isDisabled={isLoading}
+                    >
                       {showPassword ? 'Hide' : 'Show'}
                     </Button>
                   </InputRightElement>
@@ -138,7 +155,7 @@ export function Login() {
             </>
           )}
 
-          <Button colorScheme="teal" type="submit">
+          <Button colorScheme="teal" type="submit" isLoading={isLoading}>
             {renderSubmitButtonText(mode)}
           </Button>
         </Flex>
@@ -151,7 +168,12 @@ export function Login() {
           <Divider opacity="1" />
         </Flex>
 
-        <Button colorScheme="teal" variant="outline" onClick={onToggleMode}>
+        <Button
+          colorScheme="teal"
+          variant="outline"
+          onClick={onToggleMode}
+          isDisabled={isLoading}
+        >
           {renderBackButtonText(mode)}
         </Button>
       </Flex>
