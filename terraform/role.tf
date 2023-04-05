@@ -27,3 +27,21 @@ resource "aws_iam_role" "authenticated" {
   name               = "cognito-authenticated"
   assume_role_policy = data.aws_iam_policy_document.authenticated_trust_policy.json
 }
+
+data "aws_iam_policy_document" "default_policy_for_lambda" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
+
+    actions = ["sts:AssumeRole"]
+  }
+}
+
+resource "aws_iam_role" "create_chat_user_lambda" {
+  name               = "create_chat_user_lambda"
+  assume_role_policy = data.aws_iam_policy_document.default_policy_for_lambda.json
+}
