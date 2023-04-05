@@ -1,6 +1,10 @@
 resource "aws_cognito_user_pool" "main" {
   name = "aws-chime-chat"
 
+  # Add your app name to the below
+  email_verification_subject = "Your verification code"
+  email_verification_message = "Your verification code is {####}."
+
   schema {
     name                     = "name"
     attribute_data_type      = "String"
@@ -23,6 +27,31 @@ resource "aws_cognito_user_pool" "main" {
       min_length = 0
       max_length = 2048
     }
+  }
+
+  schema {
+    name                     = "id"
+    attribute_data_type      = "String"
+    developer_only_attribute = false
+    mutable                  = true
+    required                 = false
+    string_attribute_constraints {
+      min_length = 0
+      max_length = 21
+    }
+  }
+
+  username_attributes      = ["email"]
+  auto_verified_attributes = ["email"]
+  account_recovery_setting {
+    recovery_mechanism {
+      name     = "verified_email"
+      priority = 1
+    }
+  }
+
+  lambda_config {
+    post_confirmation = aws_lambda_function.create_chat_user.arn
   }
 }
 
