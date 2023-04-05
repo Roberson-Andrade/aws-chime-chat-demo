@@ -9,9 +9,5 @@ export function useChatContext<T>(
     selector
   );
 
-  if (!value) {
-    throw new Error('UseChatContext should be called inside a ChatProvider');
-  }
-
   return value;
 }

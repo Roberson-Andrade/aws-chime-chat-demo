@@ -6,7 +6,7 @@ import { Channel, User } from '../../../types';
 export interface ChatContextProperties {
   messages: ChannelMessage[];
   channels: Channel[];
-  loggedUserArn: string;
+  loggedUserArn?: string;
   setMessages: Dispatch<SetStateAction<ChannelMessage[]>>;
   setChannels: Dispatch<SetStateAction<Channel[]>>;
   setToken: Dispatch<SetStateAction<string | undefined>>;

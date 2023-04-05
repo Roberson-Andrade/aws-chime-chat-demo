@@ -2,71 +2,82 @@ import {
   ChannelMessage,
   ChimeSDKMessagingClient,
 } from '@aws-sdk/client-chime-sdk-messaging';
-import { faker } from '@faker-js/faker';
-import { DefaultMessagingSession } from 'amazon-chime-sdk-js';
+import {
+  DefaultMessagingSession,
+  MessagingSessionObserver,
+} from 'amazon-chime-sdk-js';
 import { ReactNode, useEffect, useMemo, useState } from 'react';
-import { generateMessages } from '../../../api/mockedChime';
 import { useAuth } from '../../../contexts/Auth/useAuthContext';
 import { Channel, User } from '../../../types';
 import { messageService } from '../messageService';
+import { generateUserArn } from '../utils';
 import { ChatContext, ChatContextProperties } from './Context';
 
 interface ChatProviderProperties {
   children: ReactNode;
 }
 
-const MOCKED_CHANNELS: Channel[] = [
-  {
-    channelId: faker.datatype.uuid(),
-    name: faker.name.fullName(),
-    lastMessageDate: new Date(),
-    lastMessage: faker.lorem.lines(1),
-  },
-  {
-    channelId: faker.datatype.uuid(),
-    name: faker.name.fullName(),
-    lastMessageDate: new Date(),
-    lastMessage: faker.lorem.lines(1),
-  },
-  {
-    channelId: faker.datatype.uuid(),
-    name: faker.name.fullName(),
-    lastMessageDate: new Date(),
-    lastMessage: faker.lorem.lines(1),
-  },
-];
-
-const MOCKED_USERS: User[] = [
-  { id: faker.datatype.uuid(), name: faker.name.fullName() },
-  { id: faker.datatype.uuid(), name: faker.name.fullName() },
-  { id: faker.datatype.uuid(), name: faker.name.fullName() },
-];
-
 export function ChatProvider({ children }: ChatProviderProperties) {
   const [client, setClient] = useState<ChimeSDKMessagingClient>();
   const [session, setSession] = useState<DefaultMessagingSession>();
 
-  const [messages, setMessages] = useState<ChannelMessage[]>(() =>
-    generateMessages(10)
-  );
-  const [channels, setChannels] = useState<Channel[]>(MOCKED_CHANNELS);
+  const [messages, setMessages] = useState<ChannelMessage[]>(() => []);
+  const [channels, setChannels] = useState<Channel[]>([]);
+
   const [selectedChannel, setSelectedChannel] = useState<Channel>();
-  const [users, setUsers] = useState(MOCKED_USERS);
-  const [loggedUserArn, setLoggedUserArn] = useState('arn1');
-  generateMessages(10);
-  const [token, setToken] = useState<string | undefined>('aa');
+  const [users, setUsers] = useState<User[]>([]);
+  const [loggedUserArn, setLoggedUserArn] = useState<string>();
+  const [token, setToken] = useState<string | undefined>();
 
   const user = useAuth((state) => state?.user);
 
   useEffect(() => {
-    if (user)
+    if (user && !client)
       (async () => {
-        const messageServiceResponse = await messageService(user);
+        const userArn = generateUserArn(user.id);
+        const messageServiceResponse = await messageService(userArn);
+
+        messageServiceResponse.session.start();
 
         setClient(messageServiceResponse.client);
         setSession(messageServiceResponse.session);
+        setLoggedUserArn(userArn);
       })();
-  }, [user]);
+  }, [client, user]);
+
+  const observer: MessagingSessionObserver = useMemo(
+    () => ({
+      messagingSessionDidStart: (): void => {},
+      messagingSessionDidStartConnecting: (): void => {},
+      messagingSessionDidStop: (): void => {},
+      messagingSessionDidReceiveMessage: (message): void => {
+        switch (message.type) {
+          case 'CREATE_CHANNEL_MESSAGE': {
+            console.log('message', message);
+
+            break;
+          }
+          case 'UPDATE_CHANNEL_MESSAGE': {
+            console.log('message', message);
+            break;
+          }
+          default:
+        }
+      },
+    }),
+    []
+  );
+
+  useEffect(() => {
+    if (session) {
+      session.addObserver(observer);
+    }
+    return () => {
+      if (session) {
+        session.removeObserver(observer);
+      }
+    };
+  }, [observer, session]);
 
   const value = useMemo<ChatContextProperties>(
     () => ({
