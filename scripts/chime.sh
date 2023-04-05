@@ -3,7 +3,7 @@ set -e
 
 APP_INSTANCE_ARN=""
 APP_INSTANCE_USER_ARN=""
-APP_INSTANCE_NAME=""
+APP_INSTANCE_NAME="aws-chime-demo"
 
 APP_INSTANCE_ARN=$(aws chime list-app-instances --query "AppInstances[*].{ name:Name, appInstanceArn:AppInstanceArn }[?name=='$APP_INSTANCE_NAME'].appInstanceArn" --output text)
 
