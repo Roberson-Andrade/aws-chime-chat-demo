@@ -1,4 +1,8 @@
 variable "region" {
   type    = string
-  default = "sa-east-1"
+  default = "us-west-2"
+}
+
+variable "app_instance_arn" {
+  type = string
 }
