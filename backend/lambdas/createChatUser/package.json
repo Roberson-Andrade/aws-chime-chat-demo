@@ -1,0 +1,22 @@
+{
+  "name": "createChatUser",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsup"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.114",
+    "@types/node": "^18.15.11",
+    "tsup": "^6.7.0",
+    "typescript": "^5.0.3"
+  },
+  "dependencies": {
+    "@aws-sdk/client-chime-sdk-identity": "^3.306.0",
+    "@aws-sdk/client-chime-sdk-messaging": "^3.306.0"
+  }
+}
