@@ -28,16 +28,16 @@
 
 - [ ] Chat
   - [x] Visual and structure
-  - [ ] Integration with AWS Chime Messaging
+  - [x] Integration with AWS Chime Messaging
   - [ ] Chat operations (send message, create channel, receive messages...)
 
 #### Backend:
 
-- [ ] Add a pre sign-up Lambda trigger
-- [ ] Create chime user through the triggered lambda
+- [x] Add a post confirmation Lambda trigger
+- [x] Create chime user through the triggered lambda
 
 #### Terraform:
 
-- [ ] Cognito
-- [ ] Chime Messaging
-- [ ] Lambda
+- [x] Cognito
+- [x] Chime Messaging
+- [x] Lambda
