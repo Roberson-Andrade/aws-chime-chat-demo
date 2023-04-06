@@ -1,13 +1,13 @@
 import { ChannelMessage } from '@aws-sdk/client-chime-sdk-messaging';
 import { Box, Text } from '@chakra-ui/react';
-import { useChatContext } from '../../context/useChatContext';
+import { useChatContextSelector } from '../../context/useChatContextSelector';
 
 interface BubbleProperties {
   message: ChannelMessage;
 }
 
 export function Bubble({ message }: BubbleProperties) {
-  const loggedUserArn = useChatContext((state) => state?.loggedUserArn);
+  const loggedUserArn = useChatContextSelector((state) => state?.loggedUserArn);
 
   const variant = message.Sender?.Arn === loggedUserArn ? 'sent' : 'received';
   const isMessageSent = variant === 'sent';

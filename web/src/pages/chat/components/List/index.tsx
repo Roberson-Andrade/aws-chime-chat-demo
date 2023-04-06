@@ -24,7 +24,7 @@ export function List() {
     users: userList,
     selectedChannel,
     setSelectedChannel,
-  } = useChatContext((state) => state);
+  } = useChatContext();
 
   function onToggleDisplayList() {
     setListToDisplay((previousList) =>

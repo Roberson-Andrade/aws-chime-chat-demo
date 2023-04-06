@@ -10,9 +10,7 @@ const UNDEFINED = undefined;
 const START_INDEX = 100_000;
 
 export function Channel() {
-  const { messages, token, setMessages, setToken } = useChatContext(
-    (state) => state
-  );
+  const { messages, token, setMessages, setToken } = useChatContext();
   const [firstItemIndex, setFirstItemIndex] = useState(
     START_INDEX - messages.length
   );
