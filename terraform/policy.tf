@@ -5,7 +5,9 @@ data "aws_iam_policy_document" "authenticated" {
       "chime:SendChannelMessage",
       "chime:ListChannelMessages",
       "chime:RedactChannelMessage",
-      "chime:UpdateChannelMessage"
+      "chime:UpdateChannelMessage",
+      "chime:ListAppInstanceUsers",
+      "chime:ListChannelMembershipsForAppInstanceUser"
     ]
 
     resources = [
