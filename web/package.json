@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@aws-sdk/client-chime-sdk-identity": "^3.306.0",
     "@aws-sdk/client-chime-sdk-messaging": "^3.300.0",
     "@chakra-ui/react": "^2.5.3",
     "@emotion/react": "^11.10.6",

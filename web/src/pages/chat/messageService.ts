@@ -1,4 +1,5 @@
 /* eslint-disable unicorn/no-null */
+import { ChimeSDKIdentityClient } from '@aws-sdk/client-chime-sdk-identity';
 import { ChimeSDKMessagingClient } from '@aws-sdk/client-chime-sdk-messaging';
 import {
   ConsoleLogger,
@@ -17,6 +18,11 @@ export async function messageService(userArn: string) {
     credentials: async () => Auth.currentCredentials(),
   });
 
+  const identityClient = new ChimeSDKIdentityClient({
+    region: REGION,
+    credentials: async () => Auth.currentCredentials(),
+  });
+
   const configuration = new MessagingSessionConfiguration(
     userArn,
     null,
@@ -29,6 +35,7 @@ export async function messageService(userArn: string) {
 
   return {
     client,
+    identityClient,
     session,
   };
 }
