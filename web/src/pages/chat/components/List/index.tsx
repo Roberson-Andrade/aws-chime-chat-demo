@@ -40,9 +40,54 @@ export function List() {
     setSelectedChannel(value);
   }
 
-  const filteredChannelList = filterList(channelList, textFilter);
-  const filteredUserList = filterList(userList, textFilter);
+  const filteredChannelList = filterList(channelList ?? [], textFilter);
+  const filteredUserList = filterList(userList ?? [], textFilter);
   const shouldDisplayChannelList = listToDisplay === 'channel';
+
+  function renderItemsList() {
+    if (shouldDisplayChannelList) {
+      if (filteredChannelList.length === 0) {
+        return (
+          <Flex
+            w="100%"
+            h="100%"
+            justify="center"
+            align="center"
+            color="teal.900"
+          >
+            No channel found
+          </Flex>
+        );
+      }
+
+      return filteredChannelList.map((channel) => (
+        <ChannelListItem
+          key={channel.channelId}
+          channel={channel}
+          isActive={channel.channelId === selectedChannel?.channelId}
+          onClick={() => onSelectChannel(channel)}
+        />
+      ));
+    }
+
+    if (filteredUserList.length === 0) {
+      return (
+        <Flex
+          w="100%"
+          h="100%"
+          justify="center"
+          align="center"
+          color="teal.900"
+        >
+          No user found
+        </Flex>
+      );
+    }
+
+    return filteredUserList.map((user) => (
+      <UserListItem key={user.id} user={user} />
+    ));
+  }
   return (
     <Box
       h="full"
@@ -90,18 +135,7 @@ export function List() {
         w="full"
         margin="0"
       >
-        {shouldDisplayChannelList
-          ? filteredChannelList.map((channel) => (
-              <ChannelListItem
-                key={channel.channelId}
-                channel={channel}
-                isActive={channel.channelId === selectedChannel?.channelId}
-                onClick={() => onSelectChannel(channel)}
-              />
-            ))
-          : filteredUserList.map((user) => (
-              <UserListItem key={user.id} user={user} />
-            ))}
+        {renderItemsList()}
       </UnorderedList>
     </Box>
   );

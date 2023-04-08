@@ -1,6 +1,6 @@
 import { Avatar, Box, Button, ButtonProps, Text } from '@chakra-ui/react';
 import { ReactNode } from 'react';
-import { Channel, User } from '../../../../types';
+import { Channel, ChatUser } from '../../../../types';
 
 interface ListItemProperties extends ButtonProps {
   children: ReactNode;
@@ -65,7 +65,7 @@ export function ChannelListItem({
 
 export interface UserListItemProperties
   extends ListItemPropertiesWithoutChildren {
-  user: User;
+  user: ChatUser;
 }
 
 export function UserListItem({ user, ...properties }: UserListItemProperties) {

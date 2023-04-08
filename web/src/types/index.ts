@@ -15,4 +15,9 @@ export interface User {
   name: string;
 }
 
+export interface ChatUser {
+  id: string;
+  name: string;
+}
+
 export type Mode = 'signUp' | 'signIn' | 'confirmAccount';

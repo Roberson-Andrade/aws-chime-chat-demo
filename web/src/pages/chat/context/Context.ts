@@ -1,17 +1,20 @@
-import { ChannelMessage } from '@aws-sdk/client-chime-sdk-messaging';
+import {
+  ChannelMessage,
+  ChannelSummary,
+} from '@aws-sdk/client-chime-sdk-messaging';
 import { Dispatch, SetStateAction } from 'react';
 import { createContext } from 'use-context-selector';
-import { Channel, User } from '../../../types';
+import { Channel, ChatUser } from '../../../types';
 
 export interface ChatContextProperties {
   messages: ChannelMessage[];
-  channels: Channel[];
+  channels: ChannelSummary[];
   loggedUserArn?: string;
   setMessages: Dispatch<SetStateAction<ChannelMessage[]>>;
-  setChannels: Dispatch<SetStateAction<Channel[]>>;
+  setChannels: Dispatch<SetStateAction<ChannelSummary[]>>;
   setToken: Dispatch<SetStateAction<string | undefined>>;
   token?: string;
-  users: User[];
+  users?: ChatUser[];
   selectedChannel?: Channel;
   setSelectedChannel: Dispatch<SetStateAction<Channel | undefined>>;
 }

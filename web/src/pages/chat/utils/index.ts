@@ -18,6 +18,20 @@ export function filterList<T extends { name: string }>(
   );
 }
 
+export function getAppInstanceArn() {
+  if (!awsconfig.app_instance_arn.value) {
+    throw new Error('app_instance_arn does not exists');
+  }
+
+  return awsconfig.app_instance_arn.value;
+}
+
 export function generateUserArn(id: string) {
-  return `${awsconfig.app_instance_arn.value}/user/${id}`;
+  return `${getAppInstanceArn()}/user/${id}`;
+}
+
+export function getIdFromUserArn(userArn: string) {
+  const id = userArn.split('user/')[1];
+
+  return id;
 }
