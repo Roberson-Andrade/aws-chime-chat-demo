@@ -6,11 +6,19 @@ import {
   InputLeftElement,
   Flex,
   IconButton,
+  Stack,
+  Skeleton,
 } from '@chakra-ui/react';
 import { AddressBook, Chats, MagnifyingGlass } from 'phosphor-react';
 import { useState } from 'react';
-import { Channel } from '../../../../types';
+import { createChannel } from '../../../../api/chime';
+import { useAuth } from '../../../../contexts/Auth/useAuthContext';
+import { Channel, ChatUser } from '../../../../types';
 import { useChatContext } from '../../context/useChatContext';
+import {
+  resetMessagesAction,
+  setMessagesFromSelectedChannelAction,
+} from '../../reducers/messages/actions';
 import { filterList } from '../../utils';
 import { ChannelListItem, UserListItem } from '../ListItem';
 
@@ -23,8 +31,16 @@ export function List() {
     channels: channelList,
     users: userList,
     selectedChannel,
+    client,
+    allMessages,
+    isChannelsLoading,
+    virtuosoReference,
     setSelectedChannel,
+    setChannels,
+    dispatch,
   } = useChatContext();
+
+  const user = useAuth((state) => state?.user);
 
   function onToggleDisplayList() {
     setListToDisplay((previousList) =>
@@ -38,13 +54,92 @@ export function List() {
 
   function onSelectChannel(value: Channel) {
     setSelectedChannel(value);
+    const selectedMessages = allMessages?.get(value.channelArn);
+
+    if (selectedMessages) {
+      virtuosoReference.current?.scrollTo({ top: 999_999_999_999_999 });
+
+      dispatch(
+        setMessagesFromSelectedChannelAction(
+          selectedMessages.messages,
+          selectedMessages.token
+        )
+      );
+    }
   }
 
-  const filteredChannelList = filterList(channelList ?? [], textFilter);
+  async function onClickUser(clickedUser: ChatUser) {
+    const foundChannel = channelList.find(
+      (channel) => channel.name === clickedUser.name
+    );
+
+    if (foundChannel) {
+      const selectedMessages = allMessages?.get(foundChannel.channelArn);
+
+      setSelectedChannel(foundChannel);
+      setListToDisplay('channel');
+
+      if (selectedMessages) {
+        dispatch(
+          setMessagesFromSelectedChannelAction(
+            selectedMessages.messages,
+            selectedMessages.token
+          )
+        );
+      }
+      return;
+    }
+
+    if (client) {
+      const channelArn = await createChannel({
+        chimeClient: client,
+        currentUserId: user.id,
+        userToChatId: clickedUser.id,
+      });
+
+      const newChannel: Channel = { channelArn, name: clickedUser.name };
+
+      setChannels((previousChannels) => [...previousChannels, newChannel]);
+      setSelectedChannel(newChannel);
+      setListToDisplay('channel');
+      dispatch(resetMessagesAction());
+    }
+  }
+
+  const filteredChannelList = filterList(channelList ?? [], textFilter).sort(
+    (a, b) => {
+      const parsedTimestampA = allMessages
+        ?.get(a.channelArn)
+        ?.messages.at(-1)?.CreatedTimestamp;
+
+      const parsedTimestampB = allMessages
+        ?.get(b.channelArn)
+        ?.messages.at(-1)?.CreatedTimestamp;
+
+      if (
+        parsedTimestampA &&
+        parsedTimestampB &&
+        parsedTimestampA > parsedTimestampB
+      ) {
+        return -1;
+      }
+
+      return 1;
+    }
+  );
   const filteredUserList = filterList(userList ?? [], textFilter);
   const shouldDisplayChannelList = listToDisplay === 'channel';
 
   function renderItemsList() {
+    if (isChannelsLoading) {
+      return (
+        <Stack p="1rem 1.5rem">
+          {Array.from({ length: 9 }).map((_, index) => (
+            <Skeleton key={index} height="60px" />
+          ))}
+        </Stack>
+      );
+    }
     if (shouldDisplayChannelList) {
       if (filteredChannelList.length === 0) {
         return (
@@ -62,9 +157,9 @@ export function List() {
 
       return filteredChannelList.map((channel) => (
         <ChannelListItem
-          key={channel.channelId}
+          key={channel.channelArn}
           channel={channel}
-          isActive={channel.channelId === selectedChannel?.channelId}
+          isActive={channel.channelArn === selectedChannel?.channelArn}
           onClick={() => onSelectChannel(channel)}
         />
       ));
@@ -84,8 +179,12 @@ export function List() {
       );
     }
 
-    return filteredUserList.map((user) => (
-      <UserListItem key={user.id} user={user} />
+    return filteredUserList.map((userItem) => (
+      <UserListItem
+        key={userItem.id}
+        user={userItem}
+        onClick={() => onClickUser(userItem)}
+      />
     ));
   }
   return (
@@ -112,6 +211,7 @@ export function List() {
             pr="4.5rem"
             value={textFilter}
             onChange={(event) => onChangeTextFilter(event.target.value)}
+            isDisabled={isChannelsLoading}
           />
         </InputGroup>
         <IconButton
@@ -126,6 +226,7 @@ export function List() {
           colorScheme="teal"
           variant="outline"
           onClick={onToggleDisplayList}
+          isDisabled={isChannelsLoading}
         />
       </Flex>
       <UnorderedList

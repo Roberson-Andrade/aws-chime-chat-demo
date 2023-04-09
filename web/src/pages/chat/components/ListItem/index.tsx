@@ -1,6 +1,7 @@
 import { Avatar, Box, Button, ButtonProps, Text } from '@chakra-ui/react';
 import { ReactNode } from 'react';
 import { Channel, ChatUser } from '../../../../types';
+import { useChatContext } from '../../context/useChatContext';
 
 interface ListItemProperties extends ButtonProps {
   children: ReactNode;
@@ -34,31 +35,38 @@ export function ChannelListItem({
   channel,
   ...properties
 }: ChannelListItemProperties) {
+  const { allMessages } = useChatContext();
+
+  const lastMessage = allMessages?.get(channel.channelArn)?.messages.at(-1);
   return (
     <ListItem {...properties}>
       {' '}
       <Avatar size="md" />
       <Box textAlign="left" minW="0">
         <Text>{channel.name}</Text>
-        <Text
-          fontSize="xs"
-          fontWeight="light"
-          color="gray.400"
-          style={{
-            textOverflow: 'ellipsis',
-            overflow: 'hidden',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {channel.lastMessage}
-        </Text>
+        {lastMessage && (
+          <Text
+            fontSize="xs"
+            fontWeight="light"
+            color="gray.400"
+            style={{
+              textOverflow: 'ellipsis',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {lastMessage.Content}
+          </Text>
+        )}
       </Box>
-      <Text ml="auto" fontSize="small" fontWeight="normal" color="gray.400">
-        {new Intl.DateTimeFormat('pt-BR', {
-          hour: '2-digit',
-          minute: '2-digit',
-        }).format(channel.lastMessageDate)}
-      </Text>
+      {channel.lastMessageDate && (
+        <Text ml="auto" fontSize="small" fontWeight="normal" color="gray.400">
+          {new Intl.DateTimeFormat('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit',
+          }).format(channel.lastMessageDate)}
+        </Text>
+      )}
     </ListItem>
   );
 }
