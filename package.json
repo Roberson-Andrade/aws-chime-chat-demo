@@ -1,0 +1,10 @@
+{
+  "name": "aws-chime-chat-demo",
+  "private": true,
+  "scripts": {
+    "tf:deploy": "sh scripts/deploy.sh",
+    "tf:destroy": "sh scripts/destroy.sh"
+  },
+  "author": "Roberson Andrade",
+  "license": "MIT"
+}

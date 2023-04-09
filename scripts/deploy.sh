@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -e
 
-cd backend/lambdas/createChatUser
+pnpm --filter @lambda/createChatUser build
 
-pnpm build
+cd terraform
 
-cd ../../../terraform
+terraform init
 
 terraform apply -var="app_instance_arn=$(sh ../scripts/chime.sh)"
 
-terraform output -json > ../web/src/awsconfig.json
+terraform output -json > ../apps/web/src/awsconfig.json

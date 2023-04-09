@@ -1,5 +1,5 @@
 {
-  "name": "createChatUser",
+  "name": "@lambda/createChatUser",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",

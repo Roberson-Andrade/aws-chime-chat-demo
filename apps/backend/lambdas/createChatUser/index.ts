@@ -28,7 +28,6 @@ export const handler: Handler<Event> = async (event) => {
 
   const { name, sub } = event.request.userAttributes;
 
-  // create chat user
   const createUserResponse = await client.send(
     new CreateAppInstanceUserCommand({
       Name: name,

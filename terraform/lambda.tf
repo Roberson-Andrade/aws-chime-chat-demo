@@ -1,7 +1,7 @@
 data "archive_file" "create_chat_user_zip" {
   type        = "zip"
-  source_file = "../backend/lambdas/createChatUser/dist/index.js"
-  output_path = "../backend/lambdas/__zip__/createChatUser.zip"
+  source_file = "../apps/backend/lambdas/createChatUser/dist/index.js"
+  output_path = "../apps/backend/lambdas/__zip__/createChatUser.zip"
 }
 
 resource "aws_lambda_function" "create_chat_user" {
