@@ -120,6 +120,13 @@ export function Channel() {
               </div>
             )}
             components={{ Header: token ? Header : UNDEFINED }}
+            followOutput={(isAtBottom: boolean) => {
+              if (isAtBottom) {
+                return 'smooth';
+              }
+
+              return false;
+            }}
           />
           <form onSubmit={onSendMessage}>
             <Flex p="4" w="full" mt="auto" bg="white" gap="4">
