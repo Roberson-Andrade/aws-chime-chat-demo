@@ -23,6 +23,10 @@ export async function createChannel({
         AppInstanceArn: appInstanceArn,
         ChimeBearer: generateUserArn(currentUserId),
         Name: `${currentUserId}#${userToChatId}`,
+        MemberArns: [
+          generateUserArn(currentUserId),
+          generateUserArn(userToChatId),
+        ],
       })
     );
 
