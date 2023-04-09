@@ -6,18 +6,35 @@ import {
   ChannelMessage,
   ChimeSDKMessagingClient,
   ListChannelMembershipsForAppInstanceUserCommand,
-  ChannelSummary,
   ListChannelMessagesCommand,
-  ChannelMessageSummary,
+  SortOrder,
 } from '@aws-sdk/client-chime-sdk-messaging';
 import {
   DefaultMessagingSession,
   MessagingSessionObserver,
 } from 'amazon-chime-sdk-js';
-import { ReactNode, useEffect, useMemo, useState } from 'react';
+import {
+  ReactNode,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
+import { VirtuosoHandle } from 'react-virtuoso';
 import { useAuth } from '../../../contexts/Auth/useAuthContext';
-import { Channel, ChatUser } from '../../../types';
+import {
+  AllMessagesPayload,
+  Channel,
+  ChatUser,
+  MessageState,
+} from '../../../types';
 import { messageService } from '../messageService';
+import {
+  addAllMessagesAction,
+  addNewMessageAction,
+} from '../reducers/messages/actions';
+import { messagesReducer } from '../reducers/messages/reducer';
 import { generateUserArn, getAppInstanceArn, getIdFromUserArn } from '../utils';
 import { ChatContext, ChatContextProperties } from './Context';
 
@@ -31,15 +48,19 @@ export function ChatProvider({ children }: ChatProviderProperties) {
     useState<ChimeSDKIdentityClient>();
   const [session, setSession] = useState<DefaultMessagingSession>();
 
-  const [messages, setMessages] = useState<ChannelMessage[]>(() => []);
-  const [allMessages, setAllMessages] =
-    useState<Map<string, ChannelMessageSummary[]>>();
-  const [channels, setChannels] = useState<ChannelSummary[]>([]);
+  const [messageState, dispatch] = useReducer<
+    typeof messagesReducer,
+    MessageState
+  >(messagesReducer, { messages: [] }, (state) => state);
 
+  const [channels, setChannels] = useState<Channel[]>([]);
   const [selectedChannel, setSelectedChannel] = useState<Channel>();
+
   const [users, setUsers] = useState<ChatUser[]>();
   const [loggedUserArn, setLoggedUserArn] = useState<string>();
-  const [token, setToken] = useState<string | undefined>();
+
+  const [isChannelsLoading, setIsChannelsLoading] = useState(true);
+  const virtuosoReference = useRef<VirtuosoHandle>(null);
 
   const user = useAuth((state) => state?.user);
 
@@ -95,7 +116,7 @@ export function ChatProvider({ children }: ChatProviderProperties) {
    * Fetch all channels that the logged user is part in
    */
   useEffect(() => {
-    if (loggedUserArn && client) {
+    if (loggedUserArn && client && users) {
       (async () => {
         const channelsResponse = await client.send(
           new ListChannelMembershipsForAppInstanceUserCommand({
@@ -108,35 +129,59 @@ export function ChatProvider({ children }: ChatProviderProperties) {
           channelsResponse.ChannelMemberships &&
           channelsResponse.ChannelMemberships.length > 0
         ) {
-          const validChannels = [];
+          const validChannels: Channel[] = [];
 
-          for (const channelItem of channelsResponse.ChannelMemberships) {
-            if (channelItem.ChannelSummary) {
-              validChannels.push(channelItem.ChannelSummary);
+          for (const {
+            ChannelSummary,
+          } of channelsResponse.ChannelMemberships) {
+            if (
+              ChannelSummary &&
+              ChannelSummary.ChannelArn &&
+              ChannelSummary.Name
+            ) {
+              const [firstId, secondId] = ChannelSummary.Name.split('#');
+
+              const name =
+                firstId === user.id
+                  ? users.find((userItem) => userItem.id === secondId)?.name
+                  : users.find((userItem) => userItem.id === firstId)?.name;
+
+              if (!name) {
+                return;
+              }
+
+              validChannels.push({
+                channelArn: ChannelSummary.ChannelArn,
+                lastMessageDate: ChannelSummary.LastMessageTimestamp,
+                name,
+              });
             }
           }
 
           setChannels(validChannels);
         }
+
+        setIsChannelsLoading(false);
       })();
     }
-  }, [client, loggedUserArn]);
+  }, [client, loggedUserArn, user.id, users]);
 
   /**
-   * List the first 10 messages from each channel
+   * List the first 15 messages from each channel
    */
   useEffect(() => {
     (async () => {
-      if (client && channels.length > 0 && !allMessages) {
+      if (client && channels.length > 0 && !messageState.allMessages) {
         const promises = [];
 
         for (const channel of channels) {
           promises.push(
             client.send(
               new ListChannelMessagesCommand({
-                ChannelArn: channel.ChannelArn,
+                ChannelArn: channel.channelArn,
                 ChimeBearer: loggedUserArn,
-                MaxResults: 10,
+                MaxResults: 15,
+                SortOrder: SortOrder.DESCENDING,
               })
             )
           );
@@ -145,31 +190,74 @@ export function ChatProvider({ children }: ChatProviderProperties) {
         const allMessagesResponse = await Promise.all(promises);
 
         if (allMessagesResponse) {
-          const messagesToMap: [string, ChannelMessageSummary[]][] = [];
+          const messagesToMap: [string, AllMessagesPayload][] = [];
 
           for (const message of allMessagesResponse) {
             if (message.ChannelArn && message.ChannelMessages) {
-              messagesToMap.push([message.ChannelArn, message.ChannelMessages]);
+              messagesToMap.push([
+                message.ChannelArn,
+                {
+                  messages: message.ChannelMessages.reverse(),
+                  token: message.NextToken,
+                },
+              ]);
             }
           }
 
-          setAllMessages(new Map(messagesToMap));
+          dispatch(addAllMessagesAction(new Map(messagesToMap)));
         }
-
-        console.log('allMessagesResponse', allMessagesResponse);
       }
     })();
-  }, [allMessages, channels, client, loggedUserArn]);
+  }, [channels, client, loggedUserArn, messageState.allMessages]);
 
   const observer: MessagingSessionObserver = useMemo(
     () => ({
-      messagingSessionDidStart: (): void => {},
-      messagingSessionDidStartConnecting: (): void => {},
-      messagingSessionDidStop: (): void => {},
       messagingSessionDidReceiveMessage: (message): void => {
         switch (message.type) {
           case 'CREATE_CHANNEL_MESSAGE': {
-            console.log('message', message);
+            const parsedMessage = JSON.parse(message.payload) as Omit<
+              ChannelMessage,
+              'CreatedTimestamp' | 'LastUpdatedTimestamp'
+            > & { CreatedTimestamp: string; LastUpdatedTimestamp: string };
+
+            const formattedMessage: ChannelMessage = {
+              ...parsedMessage,
+              CreatedTimestamp: new Date(parsedMessage.CreatedTimestamp),
+              LastUpdatedTimestamp: new Date(
+                parsedMessage.LastUpdatedTimestamp
+              ),
+            };
+
+            const foundChannel = channels.find(
+              (channel) => channel.channelArn === formattedMessage.ChannelArn
+            );
+
+            if (!foundChannel) {
+              setChannels((previousChannels) => {
+                if (
+                  formattedMessage.Sender?.Name &&
+                  formattedMessage.CreatedTimestamp &&
+                  formattedMessage.ChannelArn
+                ) {
+                  return [
+                    ...previousChannels,
+                    {
+                      channelArn: formattedMessage.ChannelArn,
+                      name: formattedMessage.Sender.Name,
+                      lastMessageDate: formattedMessage.CreatedTimestamp,
+                    },
+                  ];
+                }
+
+                return previousChannels;
+              });
+            }
+            dispatch(
+              addNewMessageAction(
+                formattedMessage,
+                selectedChannel?.channelArn === formattedMessage.ChannelArn
+              )
+            );
 
             break;
           }
@@ -181,7 +269,7 @@ export function ChatProvider({ children }: ChatProviderProperties) {
         }
       },
     }),
-    []
+    [channels, selectedChannel?.channelArn]
   );
 
   useEffect(() => {
@@ -197,18 +285,31 @@ export function ChatProvider({ children }: ChatProviderProperties) {
 
   const value = useMemo<ChatContextProperties>(
     () => ({
-      messages,
+      messages: messageState.messages,
       channels,
       loggedUserArn,
-      setMessages,
       setChannels,
-      token,
-      setToken,
+      token: messageState.token,
       users,
       selectedChannel,
       setSelectedChannel,
+      client,
+      allMessages: messageState.allMessages,
+      isChannelsLoading,
+      virtuosoReference,
+      dispatch,
     }),
-    [messages, channels, loggedUserArn, token, users, selectedChannel]
+    [
+      messageState.messages,
+      messageState.token,
+      messageState.allMessages,
+      channels,
+      loggedUserArn,
+      users,
+      selectedChannel,
+      client,
+      isChannelsLoading,
+    ]
   );
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
